@@ -1,16 +1,13 @@
 "use client";
-
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-
-const STRAVA_URL = `https://www.strava.com/oauth/authorize?client_id=CLIENT_ID&response_type=code&redirect_uri=http://localhost:3000/callback&scope=activity:read_all`;
+import { signIn, useSession } from "next-auth/react";
 
 export default function Home() {
-  const [stravaAuth, setStravaAuth] = useState(false);
+  const { data: session, status } = useSession();
+  const loading = status === "loading";
 
   const handleStravaLogin = async () => {
-    window.location.href = STRAVA_URL;
-    setStravaAuth(true);
+    await signIn("strava", { callbackUrl: "/" });
   };
 
   return (
@@ -19,10 +16,20 @@ export default function Home() {
       <Button
         onClick={handleStravaLogin}
         className="mb-2"
-        disabled={stravaAuth}
+        disabled={loading || !!session}
       >
-        {stravaAuth ? "Connected to Strava" : "Connect Strava"}
+        {loading
+          ? "Loading..."
+          : session
+          ? "Connected to Strava"
+          : "Connect Strava"}
       </Button>
+
+      {session && (
+        <div className="mt-4">
+          <p>Welcome, {session.user?.name}!</p>
+        </div>
+      )}
     </div>
   );
 }
