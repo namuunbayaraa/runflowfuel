@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { DefaultSession, Account, JWT } from "next-auth";
 import StravaProvider from "next-auth/providers/strava";
 
 const STRAVA_AUTH_URL = "https://www.strava.com/oauth/authorize?" + new URLSearchParams({
@@ -9,7 +9,15 @@ const STRAVA_AUTH_URL = "https://www.strava.com/oauth/authorize?" + new URLSearc
   approval_prompt: 'auto'
 }).toString();
 
-const handler = NextAuth({
+declare module "next-auth" {
+  interface Session extends DefaultSession {
+    accessToken?: string;
+    refreshToken?: string;
+    expiresAt?: number;
+  }
+}
+
+export const authOptions = {
   providers: [
     StravaProvider({
       clientId: process.env.STRAVA_CLIENT_ID!,
@@ -18,7 +26,7 @@ const handler = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account }: { token: JWT; account: Account | null }) {
       // Persist the OAuth access_token and refresh_token to the token right after signin
       if (account) {
         token.accessToken = account.access_token;
@@ -27,7 +35,7 @@ const handler = NextAuth({
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: any; token: JWT }) {
       // Send properties to the client
       session.accessToken = token.accessToken;
       session.refreshToken = token.refreshToken;
@@ -35,6 +43,8 @@ const handler = NextAuth({
       return session;
     },
   },
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST }; 
