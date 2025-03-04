@@ -62,15 +62,18 @@ export default function RunsList() {
           >
             <h3 className="font-semibold">{run.name}</h3>
             <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
-              <div>Distance: {(run.distance / 1000).toFixed(2)} km</div>
+              <div>Distance: {run.distance.toFixed(2)} mi</div>
               <div>
                 Time: {Math.floor(run.moving_time / 60)}:
                 {String(run.moving_time % 60).padStart(2, "0")}
               </div>
               <div>
-                Pace:{" "}
-                {(run.moving_time / 60 / (run.distance / 1000)).toFixed(2)}{" "}
-                min/km
+                Pace: {Math.floor(run.average_speed)}:
+                {String(Math.round((run.average_speed % 1) * 60)).padStart(
+                  2,
+                  "0"
+                )}
+                /mi
               </div>
               <div>Date: {new Date(run.start_date).toLocaleDateString()}</div>
             </div>
