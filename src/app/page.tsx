@@ -1,6 +1,8 @@
 "use client";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { signIn, useSession } from "next-auth/react";
+import RunsList from "@/components/RunsList";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -26,8 +28,8 @@ export default function Home() {
       </Button>
 
       {session && (
-        <div className="mt-4">
-          <p>Welcome, {session.user?.name}!</p>
+        <div className="mt-4 w-full max-w-3xl">
+          <RunsList />
         </div>
       )}
     </div>
