@@ -29,6 +29,13 @@ interface RunTypeConfig {
   color: string;
 }
 
+interface RunData {
+  name: string;
+  date: string;
+  pace: number;
+  heartRate: number;
+}
+
 export default function PaceHeartScatter({ runs }: PaceHeartScatterProps) {
   const runTypes: Record<number, RunTypeConfig> = {
     1: { name: "Race", emoji: "🎯", color: "rgb(239, 68, 68)" }, // red
@@ -55,10 +62,10 @@ export default function PaceHeartScatter({ runs }: PaceHeartScatterProps) {
           run.start_date
         ).toLocaleDateString()}`,
         pace: run.average_speed,
-        heartRate: Math.round(run.average_heartrate),
+        heartRate: Math.round(run.average_heartrate ?? 0),
       });
       return acc;
-    }, {} as Record<number, any[]>);
+    }, {} as Record<number, RunData[]>);
 
   // Calculate statistics for easy runs
   const easyRuns = runsByType[0] || [];
