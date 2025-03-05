@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import DateRangePicker from "./DateRangePicker";
 import WeeklyMileageChart from "./WeeklyMileageChart";
 import { addMonths, startOfDay, endOfDay } from "date-fns";
+import PaceHeartScatter from "./PaceHeartScatter";
 
 interface Run {
   id: number;
@@ -74,8 +75,17 @@ export default function MileageChart() {
       </div>
 
       {runs.length > 0 ? (
-        <div className="p-4 bg-white rounded-lg shadow">
-          <WeeklyMileageChart runs={runs} />
+        <div className="space-y-8">
+          <div className="p-4 bg-white rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">🏃‍♀️ Training Timeline</h2>
+            <WeeklyMileageChart runs={runs} />
+          </div>
+          <div className="p-4 bg-white rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">
+              🔥 Pace vs Heart Rate
+            </h2>
+            <PaceHeartScatter runs={runs} />
+          </div>
         </div>
       ) : (
         <div className="text-center text-gray-500">
