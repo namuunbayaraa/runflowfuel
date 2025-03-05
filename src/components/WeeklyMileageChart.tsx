@@ -58,22 +58,19 @@ export default function WeeklyMileageChart({ runs }: WeeklyMileageChartProps) {
             bottom: 65,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="3" />
           <XAxis
             dataKey="week"
             label={{
               value: "Week Starting",
               position: "bottom",
-              offset: 40,
             }}
-            tick={{ angle: -45, textAnchor: "end", dy: 8 }}
           />
           <YAxis
             label={{
               value: "Miles",
               angle: -90,
               position: "insideLeft",
-              offset: -35,
             }}
           />
           <Tooltip
@@ -84,10 +81,17 @@ export default function WeeklyMileageChart({ runs }: WeeklyMileageChartProps) {
             type="monotone"
             dataKey="miles"
             name="Weekly Mileage"
-            stroke="#4ade80"
+            stroke="rgb(136, 132, 216)"
             strokeWidth={2}
-            dot={{ fill: "#4ade80", r: 4 }}
-            activeDot={{ r: 6 }}
+            dot={{
+              fill: "rgb(136, 132, 216)",
+              r: 4,
+              strokeWidth: 0,
+            }}
+            activeDot={{
+              r: 6,
+              fill: "rgb(136, 132, 216)",
+            }}
           />
         </LineChart>
       </ResponsiveContainer>
