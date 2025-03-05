@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import MileageChart from "@/components/MileageChart";
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession({
+  const { status } = useSession({
     required: true,
     onUnauthenticated() {
       redirect("/");
