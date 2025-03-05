@@ -10,6 +10,8 @@ interface StravaActivity {
   moving_time: number;
   start_date: string;
   average_speed: number;
+  average_heartrate?: number;
+  workout_type?: number;
 }
 
 export async function GET(request: Request) {
@@ -53,7 +55,8 @@ export async function GET(request: Request) {
       .map((run) => ({
         ...run,
         distance: run.distance * 0.000621371,
-        average_speed: 26.8224 / run.average_speed
+        average_speed: 26.8224 / run.average_speed,
+        workout_type: run.workout_type,
       }));
 
     return NextResponse.json(runs);

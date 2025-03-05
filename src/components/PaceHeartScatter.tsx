@@ -8,6 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
 
 interface Run {
@@ -15,21 +16,49 @@ interface Run {
   average_heartrate?: number;
   name: string;
   start_date: string;
+  workout_type?: number; // Strava workout type
 }
 
 interface PaceHeartScatterProps {
   runs: Run[];
 }
 
+interface RunTypeConfig {
+  name: string;
+  emoji: string;
+  color: string;
+}
+
 export default function PaceHeartScatter({ runs }: PaceHeartScatterProps) {
-  const data = runs
-    .filter((run) => run.average_heartrate) // Only include runs with heart rate data
-    .map((run) => ({
-      name: run.name,
-      date: new Date(run.start_date).toLocaleDateString(),
-      pace: run.average_speed, // Already in min/mile format
-      heartRate: Math.round(run.average_heartrate),
-    }));
+  const runTypes: Record<number, RunTypeConfig> = {
+    1: { name: "Race", emoji: "🎯", color: "rgb(239, 68, 68)" }, // red
+    2: { name: "Long Run", emoji: "💪", color: "rgb(34, 197, 94)" }, // green
+    3: { name: "Workout", emoji: "⚡", color: "rgb(234, 179, 8)" }, // yellow
+    0: { name: "Easy Run", emoji: "🏃‍♀️", color: "rgb(99, 102, 241)" }, // blue
+  };
+
+  const getRunConfig = (type?: number): RunTypeConfig => {
+    return runTypes[type || 0];
+  };
+
+  // Group runs by type
+  const runsByType = runs
+    .filter((run) => run.average_heartrate)
+    .reduce((acc, run) => {
+      const type = run.workout_type || 0;
+      if (!acc[type]) {
+        acc[type] = [];
+      }
+      acc[type].push({
+        name: run.name,
+        date: `${getRunConfig(run.workout_type).emoji} ${new Date(
+          run.start_date
+        ).toLocaleDateString()}`,
+        pace: run.average_speed,
+        heartRate: Math.round(run.average_heartrate),
+      });
+      return acc;
+    }, {} as Record<number, any[]>);
 
   return (
     <div className="w-full h-[400px]">
@@ -39,7 +68,7 @@ export default function PaceHeartScatter({ runs }: PaceHeartScatterProps) {
             top: 20,
             right: 30,
             left: 50,
-            bottom: 20,
+            bottom: 65,
           }}
         >
           <CartesianGrid strokeDasharray="3" />
@@ -50,8 +79,9 @@ export default function PaceHeartScatter({ runs }: PaceHeartScatterProps) {
             label={{
               value: "Pace (min/mile)",
               position: "bottom",
+              offset: 40,
             }}
-            domain={["auto", "auto"]}
+            domain={[6, "auto"]}
           />
           <YAxis
             type="number"
@@ -87,7 +117,23 @@ export default function PaceHeartScatter({ runs }: PaceHeartScatterProps) {
               return null;
             }}
           />
-          <Scatter name="Runs" data={data} fill="rgb(136, 132, 216)" />
+          <Legend
+            verticalAlign="top"
+            height={36}
+            wrapperStyle={{
+              paddingBottom: "20px",
+            }}
+          />
+          {Object.entries(runsByType).map(([type, data]) => (
+            <Scatter
+              key={type}
+              name={`${runTypes[Number(type)].emoji} ${
+                runTypes[Number(type)].name
+              }`}
+              data={data}
+              fill={runTypes[Number(type)].color}
+            />
+          ))}
         </ScatterChart>
       </ResponsiveContainer>
     </div>
