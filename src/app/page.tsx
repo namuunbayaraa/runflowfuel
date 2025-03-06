@@ -1,28 +1,33 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { signIn } from "next-auth/react";
-import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import PageLayout from "@/components/PageLayout";
 
 export default function Home() {
   const { data: session, status } = useSession();
   const loading = status === "loading";
+  const router = useRouter();
 
-  if (session) {
-    redirect("/dashboard");
-  }
+  useEffect(() => {
+    if (session) {
+      router.push("/dashboard");
+    }
+  }, [session, router]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <h1 className="text-2xl font-bold mb-4">Training & Recovery Dashboard</h1>
-      <Button
-        onClick={() => signIn("strava", { callbackUrl: "/dashboard" })}
-        className="mb-2"
-        disabled={loading}
-      >
-        {loading ? "Loading..." : "Connect with Strava"}
-      </Button>
-    </div>
+    <PageLayout>
+      <div className="flex flex-col items-center justify-center flex-grow p-4">
+        <Button
+          onClick={() => signIn("strava", { callbackUrl: "/dashboard" })}
+          className="mb-2"
+          disabled={loading}
+        >
+          {loading ? "Loading..." : "Connect with Strava"}
+        </Button>
+      </div>
+    </PageLayout>
   );
 }
