@@ -6,6 +6,7 @@ interface ExtendedJWT extends JWT {
   accessToken?: string;
   refreshToken?: string;
   expiresAt?: number;
+  error?: string;
 }
 
 const STRAVA_AUTH_URL = "https://www.strava.com/oauth/authorize?" + new URLSearchParams({
@@ -16,6 +17,40 @@ const STRAVA_AUTH_URL = "https://www.strava.com/oauth/authorize?" + new URLSearc
   approval_prompt: 'auto'
 }).toString();
 
+async function refreshAccessToken(token: ExtendedJWT) {
+  try {
+    const response = await fetch('https://www.strava.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: process.env.STRAVA_CLIENT_ID,
+        client_secret: process.env.STRAVA_CLIENT_SECRET,
+        grant_type: 'refresh_token',
+        refresh_token: token.refreshToken
+      })
+    });
+
+    const refreshedTokens = await response.json();
+
+    if (!response.ok) {
+      throw refreshedTokens;
+    }
+
+    return {
+      ...token,
+      accessToken: refreshedTokens.access_token,
+      refreshToken: refreshedTokens.refresh_token,
+      expiresAt: Math.floor(Date.now() / 1000 + refreshedTokens.expires_in)
+    };
+  } catch (error) {
+    console.error('Error refreshing access token', error);
+    return {
+      ...token,
+      error: "RefreshAccessTokenError",
+    };
+  }
+}
+
 export const authOptions = {
   providers: [
     StravaProvider({
@@ -25,13 +60,24 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, account }: { token: JWT; account: Account | null }) {
+    async jwt({ token, account }: { token: ExtendedJWT; account: Account | null }) {
       if (account) {
-        token.accessToken = account.access_token;
-        token.refreshToken = account.refresh_token;
-        token.expiresAt = account.expires_at;
+        // Initial sign in
+        return {
+          ...token,
+          accessToken: account.access_token,
+          refreshToken: account.refresh_token,
+          expiresAt: account.expires_at,
+        };
       }
-      return token;
+
+      // Return previous token if the access token has not expired
+      if (token.expiresAt && Date.now() < token.expiresAt * 1000) {
+        return token;
+      }
+
+      // Access token expired, refresh it
+      return refreshAccessToken(token);
     },
     async session({ session, token }: { session: Session; token: ExtendedJWT }) {
       session.accessToken = token.accessToken;
